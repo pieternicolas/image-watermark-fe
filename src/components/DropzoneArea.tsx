@@ -107,6 +107,7 @@ const DropzoneArea: FC<DropzoneProps> = ({ multiple, onChange }) => {
         <Box display={'flex'} gap={4} width={'full'} overflow={'auto'}>
           {files.map((file) => (
             <Box
+              key={file.name}
               onClick={() => removeFile(file)}
               _hover={{
                 filter: 'contrast(20%)',

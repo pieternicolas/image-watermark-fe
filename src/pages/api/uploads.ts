@@ -112,9 +112,9 @@ apiRoute.post(async (req: NextConnectApiRequest, res: NextApiResponse) => {
 
       result = [
         ...result,
-        { fileName: `${base.originalname}-tokopedia.png`, url: tokopediaImg },
-        { fileName: `${base.originalname}-shopee.png`, url: shopeeImg },
-        { fileName: `${base.originalname}-lazada.png`, url: lazadaImg },
+        { fileName: `${base.originalname}-tokopedia.jpg`, url: tokopediaImg },
+        { fileName: `${base.originalname}-shopee.jpg`, url: shopeeImg },
+        { fileName: `${base.originalname}-lazada.jpg`, url: lazadaImg },
       ];
     }
 

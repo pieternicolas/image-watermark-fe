@@ -92,7 +92,6 @@ apiRoute.post(async (req: NextConnectApiRequest, res: NextApiResponse) => {
             gravity: 'southeast',
           },
         ])
-        .png()
         .toBuffer();
       const shopeeImg = await sharp(base?.buffer)
         .composite([
@@ -101,7 +100,6 @@ apiRoute.post(async (req: NextConnectApiRequest, res: NextApiResponse) => {
             gravity: 'southeast',
           },
         ])
-        .png()
         .toBuffer();
       const lazadaImg = await sharp(base?.buffer)
         .composite([
@@ -110,7 +108,6 @@ apiRoute.post(async (req: NextConnectApiRequest, res: NextApiResponse) => {
             gravity: 'southeast',
           },
         ])
-        .png()
         .toBuffer();
 
       result = [

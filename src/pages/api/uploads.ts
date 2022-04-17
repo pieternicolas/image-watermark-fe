@@ -3,47 +3,13 @@ import multer from 'multer';
 import { NextApiRequest, NextApiResponse } from 'next';
 import sharp from 'sharp';
 import JSzip from 'jszip';
+import { watermarkBorderMaker } from 'helpers/image';
 
 interface NextConnectApiRequest extends NextApiRequest {
   files: { [fieldname: string]: Express.Multer.File[] };
 }
 
 const zip = new JSzip();
-
-const watermarkMaker = async (file: Buffer, base: Buffer) => {
-  const watermarkMetadata = await sharp(file).metadata();
-  const baseMetadata = await sharp(base).metadata();
-
-  const watermarkBase = await sharp({
-    create: {
-      width: Math.ceil(
-        Number(watermarkMetadata?.width) +
-          (Number(baseMetadata?.width) * 5) / 100
-      ),
-      height: Math.ceil(
-        Number(watermarkMetadata?.height) +
-          (Number(baseMetadata?.height) * 5) / 100
-      ),
-      channels: 4,
-      background: { r: 0, g: 0, b: 0, alpha: 0 },
-    },
-  })
-    .png()
-    .toBuffer();
-
-  const watermark = await sharp(watermarkBase)
-    .composite([
-      {
-        input: file,
-        gravity: 'northwest',
-      },
-    ])
-    .png()
-    .toBuffer();
-
-  return watermark;
-};
-
 const upload = multer();
 
 const apiRoute = nextConnect({
@@ -72,50 +38,65 @@ apiRoute.post(async (req: NextConnectApiRequest, res: NextApiResponse) => {
 
     let result: any[] = [];
     for (const base of files?.base) {
-      const tokopediaWatermark = await watermarkMaker(
-        files?.tokopedia?.[0].buffer,
-        base?.buffer
-      );
-      const shopeeWatermark = await watermarkMaker(
-        files?.shopee?.[0].buffer,
-        base?.buffer
-      );
-      const lazadaWatermark = await watermarkMaker(
-        files?.lazada?.[0].buffer,
-        base?.buffer
-      );
+      if (files?.tokopedia) {
+        const tokopediaWatermark = await watermarkBorderMaker(
+          files?.tokopedia?.[0].buffer,
+          base?.buffer
+        );
 
-      const tokopediaImg = await sharp(base?.buffer)
-        .composite([
-          {
-            input: tokopediaWatermark,
-            gravity: 'southeast',
-          },
-        ])
-        .toBuffer();
-      const shopeeImg = await sharp(base?.buffer)
-        .composite([
-          {
-            input: shopeeWatermark,
-            gravity: 'southeast',
-          },
-        ])
-        .toBuffer();
-      const lazadaImg = await sharp(base?.buffer)
-        .composite([
-          {
-            input: lazadaWatermark,
-            gravity: 'southeast',
-          },
-        ])
-        .toBuffer();
+        const tokopediaImg = await sharp(base?.buffer)
+          .composite([
+            {
+              input: tokopediaWatermark,
+            },
+          ])
+          .toBuffer();
 
-      result = [
-        ...result,
-        { fileName: `${base.originalname}-tokopedia.jpg`, url: tokopediaImg },
-        { fileName: `${base.originalname}-shopee.jpg`, url: shopeeImg },
-        { fileName: `${base.originalname}-lazada.jpg`, url: lazadaImg },
-      ];
+        result = [
+          ...result,
+          { fileName: `${base.originalname}-tokopedia.jpg`, url: tokopediaImg },
+        ];
+      }
+
+      if (files?.shopee) {
+        const shopeeWatermark = await watermarkBorderMaker(
+          files?.shopee?.[0].buffer,
+          base?.buffer
+        );
+
+        const shopeeImg = await sharp(base?.buffer)
+          .composite([
+            {
+              input: shopeeWatermark,
+            },
+          ])
+          .toBuffer();
+
+        result = [
+          ...result,
+          { fileName: `${base.originalname}-shopee.jpg`, url: shopeeImg },
+        ];
+      }
+
+      if (files?.lazada) {
+        const lazadaWatermark = await watermarkBorderMaker(
+          files?.lazada?.[0].buffer,
+          base?.buffer
+        );
+
+        const lazadaImg = await sharp(base?.buffer)
+          .composite([
+            {
+              input: lazadaWatermark,
+            },
+          ])
+          .toBuffer();
+
+        result = [
+          ...result,
+          { fileName: `${base.originalname}-lazada.jpg`, url: lazadaImg },
+        ];
+      }
     }
 
     for (const { fileName, url } of result) {
@@ -128,12 +109,14 @@ apiRoute.post(async (req: NextConnectApiRequest, res: NextApiResponse) => {
     zip
       .generateNodeStream({ type: 'nodebuffer', streamFiles: true })
       .pipe(res)
-      .on('finish', function () {
+      .on('finish', () => {
         console.log('out.zip written.');
       });
-  } catch (error) {
-    console.log(error);
+  } catch (error: any) {
+    console.log(error, 'error bang');
+
     res.status(400);
+    res.json({ message: error?.message });
   }
 });
 

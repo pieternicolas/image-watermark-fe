@@ -12,6 +12,7 @@ export default function Home() {
   const [shopee, setShopee] = useState<File>();
   const [lazada, setLazada] = useState<File>();
 
+  const [uploadErrorMessage, setUploadErrorMessage] = useState<string>('');
   const [progress, setProgress] = useState<number>(0);
 
   const config: AxiosRequestConfig = {
@@ -23,34 +24,35 @@ export default function Home() {
   };
 
   const uploadFiles = async () => {
+    setProgress(0);
+    setUploadErrorMessage('');
+
     try {
-      setProgress(0);
+      const formData = new FormData();
 
-      if (tokopedia && shopee && lazada) {
-        const formData = new FormData();
+      Array.from(files).forEach((file) => {
+        formData.append('base', file);
+      });
+      if (tokopedia) formData.append('tokopedia', tokopedia);
+      if (shopee) formData.append('shopee', shopee);
+      if (lazada) formData.append('lazada', lazada);
 
-        Array.from(files).forEach((file) => {
-          formData.append('base', file);
-        });
-        formData.append('tokopedia', tokopedia);
-        formData.append('shopee', shopee);
-        formData.append('lazada', lazada);
+      const result = await axios.post('/api/uploads', formData, config);
 
-        const result = await axios.post('/api/uploads', formData, config);
+      const url = window.URL.createObjectURL(new Blob([result.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'file.zip'); //or any other extension
+      document.body.appendChild(link);
+      link.click();
+    } catch (error) {
+      console.log(error, 'error client');
 
-        const url = window.URL.createObjectURL(new Blob([result.data]));
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', 'file.zip'); //or any other extension
-        document.body.appendChild(link);
-        link.click();
-
-        console.log(result, 'asdf');
-      }
-    } catch (error) {}
+      setUploadErrorMessage(
+        'There was an error with the upload. Please contact the developer for more info.'
+      );
+    }
   };
-
-  console.log(progress);
 
   return (
     <Box className={styles.container}>
@@ -88,15 +90,25 @@ export default function Home() {
           <DropzoneArea multiple onChange={(values) => setFiles(values)} />
         </Box>
 
+        {progress > 0 && (
+          <Box width={'full'} mt={4}>
+            <Progress value={progress} hasStripe />
+          </Box>
+        )}
+
+        {uploadErrorMessage && (
+          <Box width={'full'} mt={4}>
+            <Text color={'red'}>{uploadErrorMessage}</Text>
+          </Box>
+        )}
+
         <Button
           mt={4}
-          disabled={!tokopedia && !shopee && !lazada && files.length === 0}
+          disabled={(!tokopedia || !shopee || !lazada) && files.length === 0}
           onClick={uploadFiles}
         >
           Apply watermark and download
         </Button>
-
-        <Progress value={progress} />
       </main>
     </Box>
   );

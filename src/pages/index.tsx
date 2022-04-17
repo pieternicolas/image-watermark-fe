@@ -13,18 +13,23 @@ export default function Home() {
   const [lazada, setLazada] = useState<File>();
 
   const [uploadErrorMessage, setUploadErrorMessage] = useState<string>('');
-  const [progress, setProgress] = useState<number>(0);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [downloadProgress, setDownloadProgress] = useState<number>(0);
 
   const config: AxiosRequestConfig = {
     headers: { 'content-type': 'multipart/form-data' },
     onUploadProgress: (event: any) => {
-      setProgress(Math.round((event.loaded * 100) / event.total));
+      setUploadProgress(Math.round((event.loaded * 100) / event.total));
+    },
+    onDownloadProgress: (event: any) => {
+      setDownloadProgress(Math.round((event.loaded * 100) / event.total));
     },
     responseType: 'blob',
   };
 
   const uploadFiles = async () => {
-    setProgress(0);
+    setUploadProgress(0);
+    setDownloadProgress(0);
     setUploadErrorMessage('');
 
     try {
@@ -90,9 +95,17 @@ export default function Home() {
           <DropzoneArea multiple onChange={(values) => setFiles(values)} />
         </Box>
 
-        {progress > 0 && (
+        {uploadProgress > 0 && (
           <Box width={'full'} mt={4}>
-            <Progress value={progress} hasStripe />
+            <Text>Uploading...</Text>
+            <Progress value={uploadProgress} hasStripe />
+          </Box>
+        )}
+
+        {downloadProgress > 0 && (
+          <Box width={'full'} mt={2}>
+            <Text>Downloading...</Text>
+            <Progress value={downloadProgress} colorScheme="green" hasStripe />
           </Box>
         )}
 

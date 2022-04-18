@@ -1,9 +1,9 @@
 import nextConnect from 'next-connect';
 import multer from 'multer';
 import { NextApiRequest, NextApiResponse } from 'next';
-import sharp from 'sharp';
+// import sharp from 'sharp';
 import JSzip from 'jszip';
-import { watermarkBorderMaker } from 'helpers/image';
+import { baseImageResizerV2 } from 'helpers/image';
 
 interface NextConnectApiRequest extends NextApiRequest {
   files: { [fieldname: string]: Express.Multer.File[] };
@@ -38,19 +38,27 @@ apiRoute.post(async (req: NextConnectApiRequest, res: NextApiResponse) => {
 
     let result: any[] = [];
     for (const base of files?.base) {
-      if (files?.tokopedia) {
-        const tokopediaWatermark = await watermarkBorderMaker(
-          files?.tokopedia?.[0].buffer,
-          base?.buffer
-        );
+      // const baseImage = await baseImageResizer(base?.buffer);
 
-        const tokopediaImg = await sharp(base?.buffer)
-          .composite([
-            {
-              input: tokopediaWatermark,
-            },
-          ])
-          .toBuffer();
+      if (files?.tokopedia) {
+        // const tokopediaWatermark = await watermarkBorderMaker(
+        //   files?.tokopedia?.[0].buffer,
+        //   baseImage
+        // );
+
+        // const tokopediaImg = await sharp(baseImage)
+        //   .composite([
+        //     {
+        //       input: tokopediaWatermark,
+        //       gravity: 'center',
+        //     },
+        //   ])
+        //   .toBuffer();
+
+        const tokopediaImg = await baseImageResizerV2(
+          base?.buffer,
+          files?.tokopedia?.[0].buffer
+        );
 
         result = [
           ...result,
@@ -59,18 +67,23 @@ apiRoute.post(async (req: NextConnectApiRequest, res: NextApiResponse) => {
       }
 
       if (files?.shopee) {
-        const shopeeWatermark = await watermarkBorderMaker(
-          files?.shopee?.[0].buffer,
-          base?.buffer
-        );
+        // const shopeeWatermark = await watermarkBorderMaker(
+        //   files?.shopee?.[0].buffer,
+        //   baseImage
+        // );
 
-        const shopeeImg = await sharp(base?.buffer)
-          .composite([
-            {
-              input: shopeeWatermark,
-            },
-          ])
-          .toBuffer();
+        // const shopeeImg = await sharp(baseImage)
+        //   .composite([
+        //     {
+        //       input: shopeeWatermark,
+        //     },
+        //   ])
+        //   .toBuffer();
+
+        const shopeeImg = await baseImageResizerV2(
+          base?.buffer,
+          files?.shopee?.[0].buffer
+        );
 
         result = [
           ...result,
@@ -79,18 +92,23 @@ apiRoute.post(async (req: NextConnectApiRequest, res: NextApiResponse) => {
       }
 
       if (files?.lazada) {
-        const lazadaWatermark = await watermarkBorderMaker(
-          files?.lazada?.[0].buffer,
-          base?.buffer
-        );
+        // const lazadaWatermark = await watermarkBorderMaker(
+        //   files?.lazada?.[0].buffer,
+        //   baseImage
+        // );
 
-        const lazadaImg = await sharp(base?.buffer)
-          .composite([
-            {
-              input: lazadaWatermark,
-            },
-          ])
-          .toBuffer();
+        // const lazadaImg = await sharp(baseImage)
+        //   .composite([
+        //     {
+        //       input: lazadaWatermark,
+        //     },
+        //   ])
+        //   .toBuffer();
+
+        const lazadaImg = await baseImageResizerV2(
+          base?.buffer,
+          files?.lazada?.[0].buffer
+        );
 
         result = [
           ...result,
